@@ -1,0 +1,53 @@
+body{
+  background-color:#cccccc;
+}
+.main-content {
+  background-color: #ffffff;
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.home-tabs{
+  background-color: #006633;
+  color: #fff;
+  font-size: 14px;
+}
+.home-tabs .tab-head{
+  padding:10px;
+  cursor: pointer;
+}
+.home-tabs .tab-head.active{
+  background-color: #fff;
+  color:#006633;
+}
+.home-tabs-body{
+  padding: 10px;
+  text-align: left;
+}
+.depart-date{
+  padding-right:8px !important;
+}
+.return-date{
+  padding-left:8px !important;
+}
+.tab-right{
+  text-align: end;
+  padding-right:20px;
+}
+.search{
+  background-color: #CA7373 !important;
+  padding: 10px !important;
+  width: 200px !important;
+  color:#fff !important;
+  border-radius: 20px !important;
+  font-weight: bold !important;
+}
+
+.align-center{
+  text-align: center !important;
+}
+.select-left
+{
+  text-align:left;
+}
