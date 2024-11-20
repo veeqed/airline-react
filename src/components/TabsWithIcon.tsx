@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from 'react'
 import dayjs, { Dayjs } from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -9,6 +9,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 import LocalAirportIcon from '@mui/icons-material/LocalAirport';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -16,7 +17,7 @@ import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 import PersonIcon from '@mui/icons-material/Person';
 import BusinessIcon from '@mui/icons-material/Business';
 import Button from '@mui/material/Button';
-import { useValueWithTimezone } from "@mui/x-date-pickers/internals/hooks/useValueWithTimezone";
+import { getFetchData } from '../fetch/DataFetcher'
 
 export type AirportModel = {
   airport_id: number,
@@ -27,9 +28,15 @@ export interface AirportProps {
   airports: AirportModel[]
 }
 
-export function TabsWithIcon(props: AirportProps) {
-  const airports = props.airports;
+export type AirportOption = {
+  id: number,
+  label: string
+}
 
+var initAirportOption: AirportOption = {id: 0, label: ""}
+var airportAutocomplete: AirportOption[] = [initAirportOption]
+
+export function TabsWithIcon() {
   const today = new Date();
 
   const month = today.getMonth()+1;
@@ -44,11 +51,15 @@ export function TabsWithIcon(props: AirportProps) {
   const strEndDate = nextYear + "-" + nextMonth + "-" + nextDate;
 
   console.log(currentDate)
+
+  const [finishLoad, setFinishLoad] = useState(false);
   const [activeTab, setActiveTab] = useState("book");
   const [departDate, setDepartDate] = useState(currentDate);
   const [returnDate, setReturnDate] = useState(strEndDate);
   const [fromAirportId, setFromAirportId] = useState('');
-
+  const [toAirportOption, setToAirportOption] = useState<AirportOption[]>([]);
+  const [airportData, setAirportData] = useState([])
+ 
   const tabHeadData = [
     {
       id: 1,
@@ -109,6 +120,26 @@ export function TabsWithIcon(props: AirportProps) {
     console.log(event.target.value)
     setFromAirportId(event.target.value)
   }
+
+  useEffect(() => {
+    const airport_url = import.meta.env.VITE_API_URL + 'airports'
+
+    getFetchData(airport_url)
+      .then(airport_list => {
+        let data = airport_list.data
+
+        data.map((item: AirportModel, index) => {
+          airportAutocomplete.push({id: item.airport_id, label: item.airport_name})
+        })
+
+        console.log(data)
+
+        setToAirportOption(airportAutocomplete)
+        setAirportData(airport_list.data)
+    })
+
+  }, [])
+
 
   return (
     <>
@@ -211,7 +242,7 @@ export function TabsWithIcon(props: AirportProps) {
               className="select-left"
             >
               <MenuItem key={0} value=''></MenuItem>
-              {airports.map((item: AirportModel, index) => (
+              {airportData.map((item: AirportModel, index) => (
                 <MenuItem key={item.airport_id} value={item.airport_id}>{item.airport_name}</MenuItem>
               ))}
 
@@ -222,8 +253,13 @@ export function TabsWithIcon(props: AirportProps) {
       <div>
       <Box>
         <FormControl fullWidth>
-          <TextField id="place_to" label="To" variant="outlined" />
-        </FormControl>
+        <Autocomplete
+          disablePortal
+          options={toAirportOption}
+          sx={{ width: 300 }}
+          renderInput={(params) => <TextField {...params} label="To" />}
+        />
+      </FormControl>
       </Box>
       </div>
       <div className="col-span-2 tab-right">
