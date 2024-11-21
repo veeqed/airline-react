@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route} from 'react-router-dom'
 import './App.css'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import HomeLayout from './pages/HomeLayout'
+import BookSearchLayout from './pages/BookSearchLayout';
 
 const theme = createTheme({
   components: {
@@ -23,6 +24,7 @@ function App() {
       <Routes>
         
           <Route path="/" element={<HomeLayout/>} />
+          <Route path="/flights/search/" element={<BookSearchLayout/>} />
         
       </Routes>
     </BrowserRouter>

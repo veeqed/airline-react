@@ -10,33 +10,37 @@ import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
-import LocalAirportIcon from '@mui/icons-material/LocalAirport';
-import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import PersonIcon from '@mui/icons-material/Person';
-import BusinessIcon from '@mui/icons-material/Business';
 import Button from '@mui/material/Button';
 import { getFetchData } from '../fetch/DataFetcher'
 
 export type AirportModel = {
   airport_id: number,
   airport_name: string,
+  airport_code: string,
+}
+
+export type AirportOption = {
+  data: string,
+  label: string
+}
+
+export type BookingFormModel = {
+  route_type: string,
+  promotion_code: string,
+  adult: string,
+  child: string,
+  infant: string,
+  airport_from: string,
+  airport_to: string,
+  depart_date: string,
+  return_date: string
 }
 
 export interface AirportProps {
   airports: AirportModel[]
 }
 
-export type AirportOption = {
-  id: number,
-  label: string
-}
-
-var initAirportOption: AirportOption = {id: 0, label: ""}
-var airportAutocomplete: AirportOption[] = [initAirportOption]
-
-export function TabsWithIcon() {
+export function TabBooking() {
   const today = new Date();
 
   const month = today.getMonth()+1;
@@ -49,55 +53,31 @@ export function TabsWithIcon() {
   const nextYear = endDate.getFullYear();
   const nextDate = endDate. getDate();
   const strEndDate = nextYear + "-" + nextMonth + "-" + nextDate;
-
-  console.log(currentDate)
-
-  const [finishLoad, setFinishLoad] = useState(false);
-  const [activeTab, setActiveTab] = useState("book");
-  const [departDate, setDepartDate] = useState(currentDate);
-  const [returnDate, setReturnDate] = useState(strEndDate);
-  const [fromAirportId, setFromAirportId] = useState('');
+  const [departDate, setDepartDate] = useState<Dayjs | null>(dayjs(currentDate));
+  const [returnDate, setReturnDate] = useState<Dayjs | null>(dayjs(strEndDate));
   const [toAirportOption, setToAirportOption] = useState<AirportOption[]>([]);
   const [airportData, setAirportData] = useState([])
- 
-  const tabHeadData = [
-    {
-      id: 1,
-      title: "BOOK",
-      name: "book",
-      icon: <LocalAirportIcon style={{ fontSize: 18, marginTop:-5 }} />,
-    },
-    {
-      id: 2,
-      title: "CHECK-IN",
-      name: "checkin",
-      icon: <BusinessCenterIcon style={{ fontSize: 18, marginTop:-5 }} />,
-    },
-    {
-      id: 3,
-      title: "TIMEABLE",
-      name: "timeable",
-      icon: <CalendarMonthIcon style={{ fontSize: 18, marginTop:-5 }} />,
-    },
-    {
-      id: 4,
-      title: "FLIGHT STATUS",
-      name: "flight_status",
-      icon: <FlightTakeoffIcon style={{ fontSize: 18, marginTop:-5 }} />,
-    },
-    {
-      id: 5,
-      title: "MY BOOKING",
-      name: "my_booking",
-      icon: <PersonIcon style={{ fontSize: 18, marginTop:-5 }} />,
-    },
-    {
-      id: 6,
-      title: "MORE SERVICES",
-      name: "more_services",
-      icon: <BusinessIcon style={{ fontSize: 18, marginTop:-5 }} />,
-    },
-  ];
+  const [airportToText, setAirportToText] = useState("")
+  const [errorAirportFrom, setErrorAirportFrom] = useState("")
+  const [errorAirportTo, setErrorAirportTo] = useState("")
+
+  var initAirportOption: AirportOption = {data: "", label: ""}
+  var airportAutocomplete: AirportOption[] = [initAirportOption]
+  var airportListData: AirportModel[] = []
+
+  const initFormData: BookingFormModel = {
+    route_type: "1",
+    promotion_code: "",
+    adult: "1",
+    child: "",
+    infant: "",
+    airport_from: "",
+    airport_to: "",
+    depart_date: "",
+    return_date: ""
+  }
+
+  const [formData, setFormData] = useState(initFormData);
 
   const personOptions = [];
 
@@ -106,19 +86,53 @@ export function TabsWithIcon() {
     personOptions.push(i)
   }
 
-  function tabClick(name: string) {
-    setActiveTab(name)
-    console.log(name)
-  }
-
   function addDays(date: Date, days: number): Date {
     date.setDate(date.getDate() + days);
     return date;
   }
 
-  function handleFromAirport(event: React.ChangeEvent<HTMLSelectElement>) {
-    console.log(event.target.value)
-    setFromAirportId(event.target.value)
+  const handleInputChange = (event: any) => {
+    const { name, value } = event.target;
+
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
+  };
+
+  const handleAirportToChange = (event: any) => {
+    
+    const value = event.target.innerText
+
+    setAirportToText(value)
+    console.log(value)
+  }
+
+  const bookingSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
+
+    event.preventDefault()
+    console.log(airportData)
+    formData.depart_date = (departDate) ? departDate.format('DD/MM/YYYY') : ""
+    formData.return_date = (returnDate) ? returnDate.format('DD/MM/YYYY') : ""
+
+    airportData.map((item: AirportModel, index) => {
+      if (item.airport_name == airportToText)
+      {
+        formData.airport_to = item.airport_code
+      }
+    })
+
+    if (formData.airport_from == "")
+    {
+      setErrorAirportFrom("required")
+    }
+
+    if (formData.airport_to == "")
+    {
+      setErrorAirportTo("required")
+    }
+
+    console.log(formData)
   }
 
   useEffect(() => {
@@ -126,13 +140,13 @@ export function TabsWithIcon() {
 
     getFetchData(airport_url)
       .then(airport_list => {
-        let data = airport_list.data
+        let airportListData = airport_list.data
 
-        data.map((item: AirportModel, index) => {
-          airportAutocomplete.push({id: item.airport_id, label: item.airport_name})
+        airportListData.map((item: AirportModel, index) => {
+          airportAutocomplete.push({data: item.airport_code, label: item.airport_name})
         })
 
-        console.log(data)
+        console.log(airportListData)
 
         setToAirportOption(airportAutocomplete)
         setAirportData(airport_list.data)
@@ -143,23 +157,14 @@ export function TabsWithIcon() {
 
   return (
     <>
-    <div className="home-tabs grid grid-cols-3 lg:grid-cols-6">
-      {tabHeadData.map((item, index) => (
-          <div className={activeTab == item.name ? 'tab-head active' : 'tab-head'}
-            key={item.id}
-            onClick={() => tabClick(item.name)} >
-            {item.icon} {item.title}
-          </div>
-      ))}
-    </div>
-
-    <form>
+    <form onSubmit={bookingSubmit} >
     <div className="grid grid-cols-1 lg:grid-cols-4 mt-4">
       <div className="px-4">
         <Box>
           <FormControl fullWidth>
             <Select
-              id="route_type" defaultValue={1} className="select-left"
+              id="route_type" name="route_type" className="select-left" defaultValue="1"
+              onChange={handleInputChange} value={formData.route_type}
             >
               <MenuItem key={1} value={1}>Round-trip</MenuItem>
               <MenuItem key={2} value={2}>One-way</MenuItem>
@@ -170,7 +175,8 @@ export function TabsWithIcon() {
       <div>
       <Box>
         <FormControl fullWidth>
-          <TextField id="promotion_code" label="Promotion Code" variant="outlined" />
+          <TextField id="promotion_code" label="Promotion Code" 
+          name="promotion_code" variant="outlined" value={formData.promotion_code} onChange={handleInputChange} />
         </FormControl>
       </Box>
       </div>
@@ -183,9 +189,10 @@ export function TabsWithIcon() {
               labelId="passenger_type1"
               id="passenger_type1_select"
               label="Adult(12+)" 
-              defaultValue = "" 
+              defaultValue = "1" 
+              name="adult" 
+              value={formData.adult} onChange={handleInputChange}
             >
-              <MenuItem key={0} value=''></MenuItem>
               {personOptions.map((item) => (
                   <MenuItem key={item} value={item}>{item}</MenuItem>
               ))}
@@ -200,6 +207,8 @@ export function TabsWithIcon() {
               id="passenger_type2_select"
               label="Child(2-11)" 
               defaultValue = "" 
+              name="child" 
+              value={formData.child} onChange={handleInputChange}
             >
               <MenuItem key={0} value=''></MenuItem>
               {personOptions.map((item) => (
@@ -215,7 +224,9 @@ export function TabsWithIcon() {
               labelId="passenger_type3"
               id="passenger_type3_select"
               label="Infant(2-11)" 
-              defaultValue = ""
+              defaultValue = "" 
+              name="infant" 
+              value={formData.infant} onChange={handleInputChange}
             >
               <MenuItem key={0} value=''></MenuItem>
               {personOptions.map((item) => (
@@ -228,7 +239,7 @@ export function TabsWithIcon() {
 
       </div>
     </div>
-    <div className="grid grid-cols-4 mt-4">
+    <div className="grid grid-cols-1 lg:grid-cols-4 mt-4">
       <div className="px-4">
         <Box>
           <FormControl fullWidth>
@@ -236,40 +247,51 @@ export function TabsWithIcon() {
             <Select
               labelId="place_from"
               id="place_from_select"
-              label="From" onChange={handleFromAirport} 
+              label="From"
               defaultValue = '' 
-              value={fromAirportId} 
-              className="select-left"
+              className="select-left" name="airport_from" 
+              value={formData.airport_from} onChange={handleInputChange}
             >
               <MenuItem key={0} value=''></MenuItem>
               {airportData.map((item: AirportModel, index) => (
-                <MenuItem key={item.airport_id} value={item.airport_id}>{item.airport_name}</MenuItem>
+                <MenuItem key={item.airport_id} value={item.airport_code}>{item.airport_name}</MenuItem>
               ))}
 
             </Select>
+            <label className="error">{errorAirportFrom}</label>
           </FormControl>
+          
         </Box>
       </div>
       <div>
       <Box>
         <FormControl fullWidth>
-        <Autocomplete
+        <Autocomplete 
+          onChange={handleAirportToChange} 
           disablePortal
           options={toAirportOption}
           sx={{ width: 300 }}
-          renderInput={(params) => <TextField {...params} label="To" />}
+          renderInput={(params) => 
+          <TextField name="airport_to" {...params} label="To" />} 
+          
         />
+        <label className="error">{errorAirportTo}</label>
       </FormControl>
       </Box>
       </div>
       <div className="col-span-2 tab-right">
       <LocalizationProvider dateAdapter={AdapterDayjs} >
-          <DatePicker className="depart-date" label="Depart" 
+          <DatePicker className="depart-date" label="Depart" name="depart_date"
             format="DD/MM/YYYY"
-            defaultValue={dayjs(departDate)} />
-          <DatePicker className="return-date" label="Return" 
+            defaultValue={dayjs(departDate)} 
+            value={departDate}
+            onChange={(newValue1) => setDepartDate(newValue1)}
+           />
+          <DatePicker className="return-date" label="Return" name="return_date"
             format="DD/MM/YYYY" 
-            defaultValue={dayjs(returnDate)}
+            defaultValue={dayjs(returnDate)} 
+            value={returnDate}
+            onChange={(newValue2) => setReturnDate(newValue2)}
           />
       </LocalizationProvider>
       </div>

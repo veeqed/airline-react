@@ -1,5 +1,5 @@
 body{
-  background-color:#cccccc;
+  background-color:#EEEFF3;
 }
 .main-content {
   background-color: #ffffff;
@@ -50,4 +50,27 @@ body{
 .select-left
 {
   text-align:left;
+}
+.error{
+  color:#CC0000;
+  font-size:13px;
+  text-align:left;
+  margin-top:5px;
+}
+
+.flight-rows{
+  background-color: #fff;
+  padding:10px;
+  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+.flight-title{
+  text-align: left;
+  font-size: 22px;
+  padding: 10px;
+}
+.flight-sort{
+  text-align: right;
+  font-size: 14px;
+  padding-top:20px;
 }
