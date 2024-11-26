@@ -1,5 +1,5 @@
 body{
-  background-color:#EEEFF3;
+  background-color:#ffffff;
 }
 .main-content {
   background-color: #ffffff;
@@ -8,8 +8,14 @@ body{
 @tailwind components;
 @tailwind utilities;
 
+#root{
+  padding: 0 !important;
+}
+.clear{
+  clear:both;
+}
 .home-tabs{
-  background-color: #006633;
+  background-color: #2F576E;
   color: #fff;
   font-size: 14px;
 }
@@ -19,17 +25,17 @@ body{
 }
 .home-tabs .tab-head.active{
   background-color: #fff;
-  color:#006633;
+  color:#2F576E;
 }
 .home-tabs-body{
   padding: 10px;
   text-align: left;
 }
 .depart-date{
-  padding-right:8px !important;
+  width: 100% !important;
 }
 .return-date{
-  padding-left:8px !important;
+  width: 100% !important;
 }
 .tab-right{
   text-align: end;
@@ -73,4 +79,59 @@ body{
   text-align: right;
   font-size: 14px;
   padding-top:20px;
+}
+
+.pc-menu{
+  background-color: #2F576E;
+  padding-top:5px;
+  padding-bottom:5px;
+  width: 100%;
+  float: left;
+}
+.pc-menu .airlogo{
+  display: inline-block;
+  width: 100px;
+}
+.pc-menu .airlogo img{
+  width:80px;
+}
+.pc-menu .list{
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  display: inline-block;
+}
+.pc-menu .list li{
+  float: left;
+  color:#fff;
+  padding-right: 20px;
+  font-family: "Rubik", sans-serif;
+  font-weight: 500;
+}
+.pc-menu .list li a:hover{
+  color:#FFF100;
+}
+
+.hover-underline-animation {
+  display: inline-block;
+  position: relative;
+}
+
+.hover-underline-animation::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #FFF100;
+  transform-origin: bottom right;
+  transition: transform 0.25s ease-out;
+}
+
+.hover-underline-animation:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -32,8 +33,8 @@ export type BookingFormModel = {
   infant: string,
   airport_from: string,
   airport_to: string,
-  depart_date: string,
-  return_date: string
+  depart_date_format: string,
+  return_date_format: string
 }
 
 export interface AirportProps {
@@ -41,6 +42,7 @@ export interface AirportProps {
 }
 
 export function TabBooking() {
+  const navigate = useNavigate();
   const today = new Date();
 
   const month = today.getMonth()+1;
@@ -73,8 +75,8 @@ export function TabBooking() {
     infant: "",
     airport_from: "",
     airport_to: "",
-    depart_date: "",
-    return_date: ""
+    depart_date_format: "",
+    return_date_format: ""
   }
 
   const [formData, setFormData] = useState(initFormData);
@@ -110,10 +112,12 @@ export function TabBooking() {
 
   const bookingSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
 
+    let isValidate = true
+
     event.preventDefault()
-    console.log(airportData)
-    formData.depart_date = (departDate) ? departDate.format('DD/MM/YYYY') : ""
-    formData.return_date = (returnDate) ? returnDate.format('DD/MM/YYYY') : ""
+    
+    formData.depart_date_format = (departDate) ? departDate.format('DD/MM/YYYY') : ""
+    formData.return_date_format = (returnDate) ? returnDate.format('DD/MM/YYYY') : ""
 
     airportData.map((item: AirportModel, index) => {
       if (item.airport_name == airportToText)
@@ -124,15 +128,24 @@ export function TabBooking() {
 
     if (formData.airport_from == "")
     {
+      isValidate = false
       setErrorAirportFrom("required")
     }
 
     if (formData.airport_to == "")
     {
+      isValidate = false
       setErrorAirportTo("required")
     }
 
     console.log(formData)
+
+    if (isValidate)
+    {
+      let params_url: string = `sort=price&airport_from=${formData.airport_from}&airport_to=${formData.airport_to}&depart_date=${formData.depart_date_format}&return_date=${formData.return_date_format}`
+
+      navigate('/flights/search/?' + params_url)
+    }
   }
 
   useEffect(() => {
@@ -146,8 +159,6 @@ export function TabBooking() {
           airportAutocomplete.push({data: item.airport_code, label: item.airport_name})
         })
 
-        console.log(airportListData)
-
         setToAirportOption(airportAutocomplete)
         setAirportData(airport_list.data)
     })
@@ -156,11 +167,12 @@ export function TabBooking() {
 
 
   return (
-    <>
+    <div className="p-2">
     <form onSubmit={bookingSubmit} >
-    <div className="grid grid-cols-1 lg:grid-cols-4 mt-4">
-      <div className="px-4">
-        <Box>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
+        <div>
           <FormControl fullWidth>
             <Select
               id="route_type" name="route_type" className="select-left" defaultValue="1"
@@ -170,19 +182,16 @@ export function TabBooking() {
               <MenuItem key={2} value={2}>One-way</MenuItem>
             </Select>
           </FormControl>
-        </Box>
+        </div>
+        <div>
+          <FormControl fullWidth>
+            <TextField id="promotion_code" label="Promotion Code" 
+            name="promotion_code" value={formData.promotion_code} onChange={handleInputChange} />
+          </FormControl>
+        </div>
       </div>
-      <div>
-      <Box>
-        <FormControl fullWidth>
-          <TextField id="promotion_code" label="Promotion Code" 
-          name="promotion_code" variant="outlined" value={formData.promotion_code} onChange={handleInputChange} />
-        </FormControl>
-      </Box>
-      </div>
-      <div className="col-span-2 tab-right" style={{paddingLeft: 20}}>
-        <div className="grid grid-cols-3 gap-2">
-          <div>
+      <div className="grid grid-cols-3 gap-2">
+        <div>
           <FormControl fullWidth>
             <InputLabel id="passenger_type1">Adult</InputLabel>
             <Select
@@ -235,13 +244,12 @@ export function TabBooking() {
             </Select>
           </FormControl>
           </div>
-        </div>
-
       </div>
     </div>
-    <div className="grid grid-cols-1 lg:grid-cols-4 mt-4">
-      <div className="px-4">
-        <Box>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-2">
+        <div>
           <FormControl fullWidth>
             <InputLabel id="place_from">From</InputLabel>
             <Select
@@ -260,41 +268,45 @@ export function TabBooking() {
             </Select>
             <label className="error">{errorAirportFrom}</label>
           </FormControl>
-          
-        </Box>
+        </div>
+        <div>
+          <FormControl fullWidth>
+            <Autocomplete 
+              onChange={handleAirportToChange} 
+              disablePortal
+              options={toAirportOption}
+              renderInput={(params) => 
+              <TextField name="airport_to" {...params} label="To" />} 
+              
+            />
+            <label className="error">{errorAirportTo}</label>
+          </FormControl>
+        </div>
       </div>
-      <div>
-      <Box>
-        <FormControl fullWidth>
-        <Autocomplete 
-          onChange={handleAirportToChange} 
-          disablePortal
-          options={toAirportOption}
-          sx={{ width: 300 }}
-          renderInput={(params) => 
-          <TextField name="airport_to" {...params} label="To" />} 
-          
-        />
-        <label className="error">{errorAirportTo}</label>
-      </FormControl>
-      </Box>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+        <LocalizationProvider dateAdapter={AdapterDayjs} >
+            <DatePicker className="depart-date" label="Depart" name="depart_date"
+              format="DD/MM/YYYY"
+              defaultValue={dayjs(departDate)} 
+              value={departDate}
+              onChange={(newValue1) => setDepartDate(newValue1)}
+            />
+        </LocalizationProvider>
+        </div>
+        <div>
+        <LocalizationProvider dateAdapter={AdapterDayjs} >
+            <DatePicker className="return-date" label="Return" name="return_date"
+              format="DD/MM/YYYY" 
+              defaultValue={dayjs(returnDate)} 
+              value={returnDate}
+              onChange={(newValue2) => setReturnDate(newValue2)}
+            />
+        </LocalizationProvider>
+        </div>
       </div>
-      <div className="col-span-2 tab-right">
-      <LocalizationProvider dateAdapter={AdapterDayjs} >
-          <DatePicker className="depart-date" label="Depart" name="depart_date"
-            format="DD/MM/YYYY"
-            defaultValue={dayjs(departDate)} 
-            value={departDate}
-            onChange={(newValue1) => setDepartDate(newValue1)}
-           />
-          <DatePicker className="return-date" label="Return" name="return_date"
-            format="DD/MM/YYYY" 
-            defaultValue={dayjs(returnDate)} 
-            value={returnDate}
-            onChange={(newValue2) => setReturnDate(newValue2)}
-          />
-      </LocalizationProvider>
-      </div>
+
     </div>
 
     <div className="mt-4 flex flex-col items-center">
@@ -305,6 +317,6 @@ export function TabBooking() {
 
     </form>
 
-    </>
+    </div>
   );
 }

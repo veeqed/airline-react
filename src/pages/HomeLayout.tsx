@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import CardDemo, { CardModel } from '../components/CardDemo'
 import { TabBooking } from '../components/TabBooking'
+import HeadLayout from './HeadLayout'
 import LocalAirportIcon from '@mui/icons-material/LocalAirport';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -68,8 +69,11 @@ const HomeLayout = () => {
     }
 
     return (
-    <div className="main-content md:container md:mx-auto">
-      <div className="justify-center grid grid-cols-1" >
+    <>
+    <HeadLayout />
+
+    <div className="main-content md:container md:mx-auto mt-4">
+
       <div className="home-tabs grid grid-cols-3 lg:grid-cols-6">
         {tabHeadData.map((item, index) => (
             <div className={activeTab == item.name ? 'tab-head active' : 'tab-head'}
@@ -79,13 +83,14 @@ const HomeLayout = () => {
             </div>
         ))}
       </div>
-        <TabBooking />
-      </div>
+      <TabBooking />
+
       <div className="justify-center grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 px-4 py-4">
         {cardData.map((card, key) => <CardDemo key={key} card={card} />)}
       </div>
       
     </div>
+    </>
     )
 }
 
